@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metas Posto RM - Login</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0059b2, #ff8c00);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      animation: fadeIn 0.8s ease forwards;
+      opacity: 0;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 26px;
+      text-transform: uppercase;
+      border: none;
+      outline: none;
+      animation: slideDown 0.6s ease forwards;
+      opacity: 0;
+    }
+
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 0.5s ease forwards;
+    }
+
+    input:nth-of-type(1) { animation-delay: 0.4s; }
+    input:nth-of-type(2) { animation-delay: 0.6s; }
+    button { 
+      background-color: #ff8c00;
+      color: white;
+      border: none;
+      cursor: pointer;
+      animation-delay: 0.8s;
+    }
+
+    input:focus {
+      border-color: #ff8c00;
+      box-shadow: 0 0 5px rgba(255,140,0,0.5);
+    }
+
+    button:hover {
+      background-color: #e67e00;
+      transform: scale(1.05);
+    }
+
+    .error {
+      background: rgba(255,0,0,0.2);
+      color: #fff;
+      padding: 8px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    .footer {
+      margin-top: 15px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    /* === ANIMAÇÕES === */
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    @keyframes slideDown {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Metas Posto RM</h1>
+
+    <% if (typeof error !== "undefined") { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/login">
+      <input type="text" name="username" placeholder="Usuário" required />
+      <input type="password" name="senha" placeholder="Senha" required />
+      <button type="submit">Entrar</button>
+    </form>
+
+    <div class="footer">
+      © 2025 Posto RM - Sistema de Metas
+    </div>
+  </div>
+</body>
+</html>

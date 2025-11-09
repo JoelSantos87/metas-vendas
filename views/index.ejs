@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Gerente - Metas Posto RM</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ===== GERAL ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: #f4f7fb; display: flex; min-height: 100vh; color: #333; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 250px; background: linear-gradient(180deg, #004aad, #003580);
+      color: white; padding: 30px 20px; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0;
+    }
+    .sidebar h2 { color: #ff9800; text-align: center; margin-bottom: 40px; font-size: 1.8em; }
+    .menu a {
+      color: white; text-decoration: none; padding: 12px 15px; border-radius: 8px;
+      margin-bottom: 10px; display: block; transition: 0.3s; font-weight: 500;
+    }
+    .menu a.active, .menu a:hover { background: #ff9800; color: white; }
+
+    /* ===== MAIN ===== */
+    .main { margin-left: 250px; flex: 1; padding: 30px 50px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    header h1 { color: #004aad; font-size: 1.6em; }
+    header .logout { background: #ff9800; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+
+    /* ===== FORMULÁRIOS ===== */
+    .form-container {
+      background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); margin-bottom: 30px;
+    }
+    input, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; font-size: 14px; border: 1px solid #ccc; }
+    input[type="month"], input[type="date"] { padding: 8px; font-size: 14px; }
+    button { background: #004aad; color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    button:hover { background: #003580; }
+
+    /* ===== CARDS ===== */
+    .funcionarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+    .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: 0.3s; display: flex; flex-direction: column; }
+    .card:hover { transform: translateY(-5px); }
+
+    .meta { background: #eef5ff; border-left: 5px solid #004aad; padding: 10px; border-radius: 8px; margin-top: 10px; }
+    .progress { margin-top: 5px; background: #eee; border-radius: 8px; overflow: hidden; height: 10px; }
+    .progress-bar { height: 10px; background: #ff9800; width: 0%; }
+
+    .emoji { font-size: 24px; text-align: center; margin-top: 8px; }
+    .happy { color: #00b300; }
+    .sad { color: #e60000; }
+
+    /* ===== BOTÃO EXCLUIR ===== */
+    .btn-delete { background: #e60000; margin-top: 10px; }
+    .btn-delete:hover { background: #b30000; }
+
+    /* ===== RESPONSIVO ===== */
+    @media(max-width:768px){
+      .main { padding: 20px 15px; margin-left: 0; }
+      .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-around; padding: 10px; }
+      .funcionarios { grid-template-columns: 1fr; }
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>Metas Posto RM</h2>
+    <div class="menu">
+      <a href="#" class="active" onclick="showTab('funcionarios', event)">👥 Funcionários</a>
+      <a href="#" onclick="showTab('metas', event)">📊 Metas</a>
+      <a href="#" onclick="showTab('relatorios', event)">📈 Relatórios</a>
+      <a href="/logout">🚪 Sair</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header>
+      <h1>Bem-vindo, <%= user.nome %> - <%= user.rede_id %></h1>
+      <a class="logout" href="/logout">Sair</a>
+    </header>
+
+    <!-- FUNCIONÁRIOS -->
+    <section id="funcionarios" class="tab">
+      <!-- Formulário de cadastro -->
+      <div class="form-container">
+        <h3>👤 Cadastrar Novo Funcionário</h3>
+        <form action="/user/new" method="POST">
+          <input type="text" name="nome" placeholder="Nome completo" required>
+          <input type="text" name="username" placeholder="Usuário de login" required>
+          <input type="password" name="senha" placeholder="Senha" required>
+          <input type="hidden" name="rede_id" value="<%= user.rede_id %>">
+          <input type="hidden" name="cargo" value="funcionario">
+          <button type="submit">Cadastrar Funcionário</button>
+        </form>
+      </div>
+
+      <!-- Lista de funcionários -->
+      <% if (funcionarios && funcionarios.length > 0) { %>
+      <div class="funcionarios">
+        <% funcionarios.forEach((f,index)=>{ %>
+        <div class="card">
+          <h3><%= f.nome %></h3>
+          <p><strong>Usuário:</strong> <%= f.username %></p>
+
+          <% if(!f.metas) f.metas=[]; %>
+
+          <!-- Meta atual -->
+          <% if(f.metas.length>0){ 
+            const metaAtual = f.metas[f.metas.length-1];
+            const totalVendido = metaAtual.progresso_diario.reduce((t,d)=>t+d.valor,0);
+            const progresso = (totalVendido/metaAtual.meta_valor*100).toFixed(1);
+            const hoje = new Date().toISOString().split('T')[0];
+            const vendaHoje = metaAtual.progresso_diario.find(d=>d.dia===hoje);
+            const metaDiaria = metaAtual.meta_valor/30;
+            const bateuMeta = vendaHoje && vendaHoje.valor >= metaDiaria;
+          %>
+            <div class="meta">
+              <strong>Mês:</strong> <%= metaAtual.mes %><br>
+              <strong>Meta Mensal:</strong> R$ <%= metaAtual.meta_valor.toFixed(2) %><br>
+              <strong>Vendido:</strong> R$ <%= totalVendido.toFixed(2) %> (<%= progresso %>%)
+              <div class="progress"><div class="progress-bar" style="width:<%= progresso %>%"></div></div>
+            </div>
+            <div class="emoji <%= bateuMeta?'happy':'sad' %>">
+              <%= bateuMeta?'😃 Bateu a meta diária!':'😞 Não bateu a meta de hoje' %>
+            </div>
+            <canvas id="chart-<%= index %>"></canvas>
+          <% } else { %>
+            <p>Nenhuma meta registrada.</p>
+          <% } %>
+
+          <!-- Adicionar nova meta -->
+          <div class="form-container" style="margin-top:15px;">
+            <form action="/meta/add/<%= f._id %>" method="POST">
+              <h4>➕ Nova Meta</h4>
+              <input type="month" name="mes" required>
+              <input type="number" name="meta_valor" step="0.01" placeholder="Valor da meta (R$)" required>
+              <button type="submit">Salvar Meta</button>
+            </form>
+          </div>
+
+          <!-- Registrar venda diária -->
+          <% if(f.metas.length>0){ const metaAtual=f.metas[f.metas.length-1]; %>
+          <div class="form-container" style="margin-top:15px;">
+            <form action="/meta/add-progress/<%= f._id %>/<%= metaAtual._id %>" method="POST">
+              <h4>💰 Registrar Venda Diária</h4>
+              <input type="date" name="dia" required>
+              <input type="number" name="valor" step="0.01" placeholder="Valor vendido (R$)" required>
+              <button type="submit">Registrar Venda</button>
+            </form>
+          </div>
+          <% } %>
+
+          <!-- Botão Excluir -->
+          <form action="/user/delete/<%= f._id %>" method="POST">
+            <button class="btn-delete" type="submit">🗑️ Excluir Funcionário</button>
+          </form>
+        </div>
+        <% }); %>
+      </div>
+      <% } else { %>
+        <p>Nenhum funcionário cadastrado ainda.</p>
+      <% } %>
+    </section>
+
+    <!-- METAS -->
+    <section id="metas" class="tab hidden">
+      <div class="form-container">
+        <h3>📊 Resumo de Metas</h3>
+        <p>Em breve: visão consolidada da equipe.</p>
+      </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="tab hidden">
+      <div class="form-container">
+        <h3>📈 Relatórios</h3>
+        <p>Gráficos comparativos mensais serão exibidos aqui.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Alterna abas
+    function showTab(tabId,event){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.menu a').forEach(l=>l.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    // Cria gráficos para cada funcionário
+    <% funcionarios.forEach((f,index)=>{ if(f.metas && f.metas.length>0){ const metaAtual=f.metas[f.metas.length-1]; %>
+      const ctx<%= index %> = document.getElementById('chart-<%= index %>').getContext('2d');
+      new Chart(ctx<%= index %>,{
+        type:'bar',
+        data:{
+          labels:<%= JSON.stringify(metaAtual.progresso_diario.map(d=>d.dia)) %>,
+          datasets:[{ data:<%= JSON.stringify(metaAtual.progresso_diario.map(d=>d.valor)) %>, backgroundColor:'#ff9800' }]
+        },
+        options:{ scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}} }
+      });
+    <% } }); %>
+  </script>
+</body>
+</html>

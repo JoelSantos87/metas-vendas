@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metas Posto RM - Funcionário</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(90deg, #0077cc, #ff8800);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 700px;
+      background: #fff;
+      margin: 30px auto;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: #0077cc;
+      text-align: center;
+    }
+
+    p {
+      font-size: 1em;
+      margin: 6px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #0077cc;
+      color: white;
+    }
+
+    .logout {
+      display: inline-block;
+      margin-top: 10px;
+      text-align: center;
+      background: #d9534f;
+      padding: 8px 12px;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .logout:hover {
+      background: #b52b27;
+    }
+
+    .meta-info {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-left: 5px solid #0077cc;
+    }
+
+    .emoji {
+      font-size: 2.2em;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <header>Bem-vindo ao Metas Posto RM</header>
+
+  <div class="container">
+    <h2>Olá, <%= user.nome %> 👋</h2>
+
+    <% if (!user.metas || user.metas.length === 0) { %>
+      <p>Você ainda não possui metas cadastradas pelo gerente.</p>
+    <% } else { 
+      const metaAtual = user.metas[user.metas.length - 1];
+      const totalVendido = metaAtual.progresso_diario.reduce((acc, d) => acc + d.valor, 0);
+      const progresso = ((totalVendido / metaAtual.meta_valor) * 100).toFixed(2);
+      const diasMes = 30;
+      const metaDiaria = metaAtual.meta_valor / diasMes;
+
+      // Soma do último dia (se houver)
+      const ultimoDia = metaAtual.progresso_diario[metaAtual.progresso_diario.length - 1];
+      const vendaHoje = ultimoDia ? ultimoDia.valor : 0;
+
+      const bateuMetaHoje = vendaHoje >= metaDiaria;
+    %>
+      <div class="meta-info">
+        <p><strong>Mês:</strong> <%= metaAtual.mes %></p>
+        <p><strong>Meta Mensal:</strong> R$ <%= metaAtual.meta_valor.toFixed(2) %></p>
+        <p><strong>Total Vendido:</strong> R$ <%= totalVendido.toFixed(2) %> (<%= progresso %>%)</p>
+        <p><strong>Meta Diária Ideal:</strong> R$ <%= metaDiaria.toFixed(2) %></p>
+        <div class="emoji"><%= bateuMetaHoje ? "😄 Parabéns, você bateu a meta de hoje!" : "😞 Ainda falta para atingir a meta diária!" %></div>
+      </div>
+
+      <% if (metaAtual.progresso_diario.length > 0) { %>
+        <h3>Histórico de Vendas</h3>
+        <table>
+          <tr><th>Data</th><th>Valor (R$)</th></tr>
+          <% metaAtual.progresso_diario.forEach(p => { %>
+            <tr>
+              <td><%= p.dia %></td>
+              <td>R$ <%= p.valor.toFixed(2) %></td>
+            </tr>
+          <% }) %>
+        </table>
+      <% } else { %>
+        <p>Sem vendas registradas neste mês.</p>
+      <% } %>
+    <% } %>
+
+    <a href="/logout" class="logout">Sair</a>
+  </div>
+</body>
+</html>

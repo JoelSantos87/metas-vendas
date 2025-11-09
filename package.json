@@ -1,38 +1,19 @@
 {
-  "name": "metas-de-vendas",
+  "name": "metaspostorm",
   "version": "1.0.0",
-  "private": true,
+  "description": "Site para gerenciamento de metas",
+  "main": "server.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:generate": "prisma generate",
-    "prisma:seed": "ts-node prisma/seed.ts",
-    "check": "node scripts/check-files.js",
-    "test:checks": "node tests/run-checks.js"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@prisma/client": "^5.9.0",
-    "bcrypt": "^5.1.0",
-    "framer-motion": "^10.12.6",
-    "next": "^13.5.8",
-    "next-auth": "^4.22.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tailwindcss": "^3.4.18"
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.9",
+    "express": "^4.18.3",
+    "mongoose": "^8.2.1"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/node": "^24.10.0",
-    "@types/react": "19.2.2",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "prisma": "^5.9.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "nodemon": "^3.1.0"
   }
 }
